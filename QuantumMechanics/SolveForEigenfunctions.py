@@ -22,7 +22,7 @@ ds = domainLength / spacialResolution
 
 H = np.zeros((spacialResolution**2, spacialResolution**2))
 
-scalar =1# hbar**2 / (2*mass) / ds**2
+scalar = hbar**2 / (2*mass) / ds**2
 
 for y in range(spacialResolution):
     for x in range(spacialResolution):
@@ -45,7 +45,7 @@ eigenvalues, eigenvectors = eigsh(H, desiredCount, which="SM")
 
 with open("computed.dat", "wb") as file:
     for i in range(desiredCount):
-        file.write(struct.pack("<d", eigenvalues[i])) # Actual eigenvalues are scalar * value
+        file.write(struct.pack("<d", eigenvalues[i] * scalar)) # Actual eigenvalues are scalar * value
         
     for i in range(desiredCount):
         [file.write(struct.pack("<d", eigenvectors[k, i])) for k in range(spacialResolution*spacialResolution)]

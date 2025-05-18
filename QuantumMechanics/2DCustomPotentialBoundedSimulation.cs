@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
+using static OpenTK.Graphics.OpenGL.GL;
 
 namespace QuantumMechanics
 {
@@ -19,7 +20,7 @@ namespace QuantumMechanics
         public double mass = 1;//910.93837; // Unit: 10^(-33) kg
 
         double domainLength;
-        int spacialResolution;
+        public int spacialResolution;
         public int eigenfunctionCount;
 
         public Func<double, double, double> potential;
@@ -39,6 +40,7 @@ namespace QuantumMechanics
         Shader constructMesh = new Shader("Shaders\\ConstructMeshFromProbability.glsl");
 
         public int meshSSBO, vao; // General purpose, to be rendered
+        public int ebo;
 
 
         // So, what do we need to do?
@@ -58,7 +60,15 @@ namespace QuantumMechanics
             targeteigenproductSSBO = GL.GenBuffer();
             probabilitySSBO = GL.GenBuffer();
 
-            
+
+            uint[] indexdata = MeshTools.BuildGridIndices((uint)spacialResolution, (uint)spacialResolution);
+
+            ebo = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
+            GL.BufferData(BufferTarget.ElementArrayBuffer,
+                          indexdata.Length * sizeof(uint),
+                          indexdata, BufferUsageHint.StaticDraw);
+
 
             vao = GL.GenVertexArray();
 
@@ -72,6 +82,8 @@ namespace QuantumMechanics
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
+
+
         }
 
         public void SolveForEigenfunctions()
@@ -310,7 +322,7 @@ namespace QuantumMechanics
             // The first values of the targeteigenproductSSBOs previous products are now the components!
 
             // Debug
-            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, targeteigenproductSSBO);
+            /*GL.BindBuffer(BufferTarget.ShaderStorageBuffer, targeteigenproductSSBO);
             IntPtr ptr = GL.MapBuffer(BufferTarget.ShaderStorageBuffer, BufferAccess.ReadOnly);
             double[] data = new double[2 * eigenfunctionCount *spacialResolution * spacialResolution];
             Marshal.Copy(ptr, data, 0, 2 * eigenfunctionCount * spacialResolution * spacialResolution);
@@ -319,7 +331,7 @@ namespace QuantumMechanics
             for(int i=0; i<eigenfunctionCount; i++)
             {
                 DebugInterface.WriteLine(data[2 * i * spacialResolution * spacialResolution].ToString() + " + " + data[2 * i * spacialResolution * spacialResolution + 1].ToString() + "j");
-            }
+            }*/
             
         }
 
