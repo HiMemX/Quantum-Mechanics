@@ -33,7 +33,7 @@ namespace QuantumMechanics
         int targetwaveSSBO;
 
         int targeteigenproductSSBO;
-        int probabilitySSBO;
+        int wavefunctionSSBO;
         Shader precalculateTargetEigen = new Shader("Shaders\\PrecalculateTargetEigen.glsl");
         Shader reduceToComponents = new Shader("Shaders\\ReduceToComponents.glsl");
         Shader combineEigenwaves = new Shader("Shaders\\CombineEigenwaves.glsl");
@@ -58,7 +58,7 @@ namespace QuantumMechanics
             componentsSSBO = GL.GenBuffer();
             targetwaveSSBO = GL.GenBuffer();
             targeteigenproductSSBO = GL.GenBuffer();
-            probabilitySSBO = GL.GenBuffer();
+            wavefunctionSSBO = GL.GenBuffer();
 
 
             uint[] indexdata = MeshTools.BuildGridIndices((uint)spacialResolution, (uint)spacialResolution);
@@ -77,12 +77,15 @@ namespace QuantumMechanics
 
             GL.BindVertexArray(vao);
 
-            GL.VertexAttribPointer(0, 4, VertexAttribPointerType.Float, false, 32, 0);
+            GL.VertexAttribPointer(0, 4, VertexAttribPointerType.Float, false, 48, 0);
             GL.EnableVertexAttribArray(0);
 
 
-            GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 32, 16);
+            GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 48, 16);
             GL.EnableVertexAttribArray(1);
+
+            GL.VertexAttribPointer(2, 4, VertexAttribPointerType.Float, false, 48, 32);
+            GL.EnableVertexAttribArray(2);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
@@ -90,7 +93,7 @@ namespace QuantumMechanics
 
         }
 
-        public void SolveForEigenfunctions()
+        public void RunPythonProgram()
         {
             BinaryWriter file = new BinaryWriter(File.Create("siminfo.dat"));
 
@@ -101,9 +104,9 @@ namespace QuantumMechanics
             file.Write(spacialResolution);
 
             double ds = (double)domainLength / (double)spacialResolution;
-            for (int y=0; y<spacialResolution; y++)
+            for (int y = 0; y < spacialResolution; y++)
             {
-                for(int x=0; x<spacialResolution; x++)
+                for (int x = 0; x < spacialResolution; x++)
                 {
                     file.Write(potential(x * ds, y * ds));
                 }
@@ -111,9 +114,9 @@ namespace QuantumMechanics
             file.Close();
 
             // Code copied from ChatGPT 
-            string pythonExe = @"C:\Users\felix\AppData\Local\Programs\Python\Python39\python.exe"; // Adjust accordingly
-                                                         // Path to the Python script
-            string scriptPath = Directory.GetCurrentDirectory() + "\\SolveForEigenfunctions.py" ;
+            string pythonExe = "C:\\Users\\felix\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe";//@"C:\Users\felix\AppData\Local\Programs\Python\python.exe"; // Adjust accordingly
+                                                                                                      // Path to the Python script
+            string scriptPath = Directory.GetCurrentDirectory() + "\\SolveForEigenfunctions.py";
 
             ProcessStartInfo psi = new ProcessStartInfo
             {
@@ -124,7 +127,7 @@ namespace QuantumMechanics
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-            /*
+
             try
             {
                 using (Process process = Process.Start(psi))
@@ -148,7 +151,12 @@ namespace QuantumMechanics
             {
                 DebugInterface.WriteLine("Error running Python script:");
                 DebugInterface.WriteLine(ex.Message);
-            }*/
+            }
+        }
+
+        public void SolveForEigenfunctions(bool solve=true)
+        {
+            if (solve) { RunPythonProgram(); } // Quicko debugging way
 
             BinaryReader reader = new BinaryReader(File.OpenRead("computed.dat"));
             double[] eigenvalues = new double[eigenfunctionCount];
@@ -159,7 +167,8 @@ namespace QuantumMechanics
                 eigenvalues[i] = reader.ReadDouble();
             }
 
-            for(int i=0; i<eigenfunctions.Length; i++)
+            double ds = (double)domainLength / (double)spacialResolution;
+            for (int i=0; i<eigenfunctions.Length; i++)
             {
                 eigenfunctions[i] = reader.ReadDouble() / ds;
             }
@@ -178,11 +187,11 @@ namespace QuantumMechanics
 
         public void ConstructWavefunction(float t)
         {
-            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, probabilitySSBO);
-            GL.BufferData(BufferTarget.ShaderStorageBuffer, spacialResolution * spacialResolution * sizeof(double), IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, wavefunctionSSBO);
+            GL.BufferData(BufferTarget.ShaderStorageBuffer, 2 * spacialResolution * spacialResolution * sizeof(double), IntPtr.Zero, BufferUsageHint.DynamicDraw);
 
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, meshSSBO);
-            GL.BufferData(BufferTarget.ShaderStorageBuffer, spacialResolution * spacialResolution * 8 * sizeof(float), IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            GL.BufferData(BufferTarget.ShaderStorageBuffer, spacialResolution * spacialResolution * 12 * sizeof(float), IntPtr.Zero, BufferUsageHint.DynamicDraw);
 
 
             combineEigenwaves.Use();
@@ -194,7 +203,7 @@ namespace QuantumMechanics
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, eigenvaluesSSBO);
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 1, eigenfunctionsSSBO);
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 2, targeteigenproductSSBO);
-            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 3, probabilitySSBO);
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 3, wavefunctionSSBO);
 
             GL.DispatchCompute((spacialResolution * spacialResolution + 127) / 128, 1, 1);
             GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
@@ -206,7 +215,7 @@ namespace QuantumMechanics
             constructMesh.SetInt("spacialResolution", spacialResolution);
             constructMesh.SetDouble("domainLength", domainLength);
 
-            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, probabilitySSBO);
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, wavefunctionSSBO);
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 1, meshSSBO);
 
             GL.DispatchCompute((spacialResolution + 31) / 32, (spacialResolution + 31) / 32, 1);

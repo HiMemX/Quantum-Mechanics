@@ -14,8 +14,8 @@ layout(std430, binding = 2) readonly buffer EigenfunctionComponents{
 	double[] components;
 };
 
-layout(std430, binding = 3) writeonly buffer ProbabilityDistribution{
-	double[] probability;
+layout(std430, binding = 3) writeonly buffer WavefunctionResult{ // Complex valued
+	double[] wavefunction;
 };
 
 uniform double hbar; // Physical constants
@@ -53,6 +53,7 @@ void main(){
 		sum_imag += eigenfunctionValue * (real_comp * sin(exponent) + imag_comp * cos(exponent));
 	}
 
-	probability[datapointIndex] = sum_real*sum_real + sum_imag*sum_imag;
+	wavefunction[2*datapointIndex] = sum_real;
+	wavefunction[2*datapointIndex+1] = sum_imag;
 
 }

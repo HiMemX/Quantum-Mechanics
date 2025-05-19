@@ -111,15 +111,15 @@ namespace QuantumMechanics
         {
             timestep = 0.02f;
 
-            simulation = new CustomPotentialBoundedSimulation(1, 64);
+            simulation = new CustomPotentialBoundedSimulation(1, 128);
 
-            simulation.hbar = 0.03;
+            simulation.hbar = 0.01;
             simulation.mass = 0.1;
             simulation.eigenfunctionCount = 512;
 
-            simulation.potential = DoubleSlitPotential;//(double x, double y) => { return simulation.mass * x; };
+            simulation.potential = RadialHarmonicPotential;//(double x, double y) => { return simulation.mass * x; };
             simulation.targetWavefunction = Wavefunction;//(double x, double y) => { x -= 0.8; y -= 0.5; return new System.Numerics.Complex(0.7 * , 0); };
-            simulation.SolveForEigenfunctions();
+            simulation.SolveForEigenfunctions(false);
             simulation.CalculateComponents();
         }
 
