@@ -77,8 +77,12 @@ namespace QuantumMechanics
 
             GL.BindVertexArray(vao);
 
-            GL.VertexAttribPointer(0, 4, VertexAttribPointerType.Float, false, 16, 0);
+            GL.VertexAttribPointer(0, 4, VertexAttribPointerType.Float, false, 32, 0);
             GL.EnableVertexAttribArray(0);
+
+
+            GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 32, 16);
+            GL.EnableVertexAttribArray(1);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
@@ -107,7 +111,7 @@ namespace QuantumMechanics
             file.Close();
 
             // Code copied from ChatGPT 
-            string pythonExe = @"C:\Users\felix\AppData\Local\Microsoft\WindowsApps\python.exe"; // Adjust accordingly
+            string pythonExe = @"C:\Users\felix\AppData\Local\Programs\Python\Python39\python.exe"; // Adjust accordingly
                                                          // Path to the Python script
             string scriptPath = Directory.GetCurrentDirectory() + "\\SolveForEigenfunctions.py" ;
 
@@ -120,7 +124,7 @@ namespace QuantumMechanics
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-
+            /*
             try
             {
                 using (Process process = Process.Start(psi))
@@ -144,7 +148,7 @@ namespace QuantumMechanics
             {
                 DebugInterface.WriteLine("Error running Python script:");
                 DebugInterface.WriteLine(ex.Message);
-            }
+            }*/
 
             BinaryReader reader = new BinaryReader(File.OpenRead("computed.dat"));
             double[] eigenvalues = new double[eigenfunctionCount];
@@ -178,7 +182,7 @@ namespace QuantumMechanics
             GL.BufferData(BufferTarget.ShaderStorageBuffer, spacialResolution * spacialResolution * sizeof(double), IntPtr.Zero, BufferUsageHint.DynamicDraw);
 
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, meshSSBO);
-            GL.BufferData(BufferTarget.ShaderStorageBuffer, spacialResolution * spacialResolution * 4 * sizeof(float), IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            GL.BufferData(BufferTarget.ShaderStorageBuffer, spacialResolution * spacialResolution * 8 * sizeof(float), IntPtr.Zero, BufferUsageHint.DynamicDraw);
 
 
             combineEigenwaves.Use();
@@ -210,8 +214,8 @@ namespace QuantumMechanics
             /*
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, meshSSBO);
             IntPtr ptr = GL.MapBuffer(BufferTarget.ShaderStorageBuffer, BufferAccess.ReadOnly);
-            float[] data = new float[4 * spacialResolution * spacialResolution];
-            Marshal.Copy(ptr, data, 0, 4 * spacialResolution * spacialResolution);
+            float[] data = new float[8 * spacialResolution * spacialResolution];
+            Marshal.Copy(ptr, data, 0, 8 * spacialResolution * spacialResolution);
             GL.UnmapBuffer(BufferTarget.ShaderStorageBuffer);
 
             foreach (float f in data)

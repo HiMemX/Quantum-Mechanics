@@ -50,7 +50,7 @@ namespace QuantumMechanics
         {
 
 
-            return -0.005 / (0.001 + Math.Sqrt(Math.Pow(x - 0.5, 2) + Math.Pow(y - 0.5, 2)));
+            return -0.01 / (0.005 + Math.Sqrt(Math.Pow(x - 0.5, 2) + Math.Pow(y - 0.5, 2)));
         }
 
         public double RadialHarmonicPotential(double x, double y)
@@ -58,6 +58,11 @@ namespace QuantumMechanics
             x -= 0.5;
             y -= 0.5;
             return x * x + y * y;
+        }
+
+        public double LinearPotential(double x, double y)
+        {
+            return x;
         }
 
         public double WallPotential(double x, double y)
@@ -108,9 +113,9 @@ namespace QuantumMechanics
 
             simulation = new CustomPotentialBoundedSimulation(1, 64);
 
-            simulation.hbar = 0.05;
-            simulation.mass = 1;
-            simulation.eigenfunctionCount = 1024;
+            simulation.hbar = 0.03;
+            simulation.mass = 0.1;
+            simulation.eigenfunctionCount = 512;
 
             simulation.potential = DoubleSlitPotential;//(double x, double y) => { return simulation.mass * x; };
             simulation.targetWavefunction = Wavefunction;//(double x, double y) => { x -= 0.8; y -= 0.5; return new System.Numerics.Complex(0.7 * , 0); };
@@ -215,6 +220,8 @@ namespace QuantumMechanics
 
             sigma = 0.1;
             amplitude = 0.7;
+
+            timestep = 0.02f;
         }
     }
 }
