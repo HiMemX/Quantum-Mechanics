@@ -22,7 +22,7 @@ ds = domainLength / spacialResolution
 
 H = np.zeros((spacialResolution**2, spacialResolution**2))
 
-scalar = hbar**2 / (2*mass) / ds**2
+scalar = hbar / mass#hbar**2 / (2*mass) / ds**2
 
 for y in range(spacialResolution):
     for x in range(spacialResolution):

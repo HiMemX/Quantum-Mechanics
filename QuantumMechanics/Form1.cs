@@ -50,7 +50,7 @@ namespace QuantumMechanics
         {
 
 
-            return -0.01 / (0.005 + Math.Sqrt(Math.Pow(x - 0.5, 2) + Math.Pow(y - 0.5, 2)));
+            return 20*(2 -0.05 / (0.025 + Math.Sqrt(Math.Pow(x - 0.5, 2) + Math.Pow(y - 0.5, 2))));
         }
 
         public double RadialHarmonicPotential(double x, double y)
@@ -67,8 +67,8 @@ namespace QuantumMechanics
 
         public double WallPotential(double x, double y)
         {
-            if (x > 0.48 && (x < 0.52)) return 0.2;
-            if (x > 0.55) return x - 0.55;
+            if (x > 0.45 && (x < 0.55)) return 1;
+
             return 0;
         }
 
@@ -81,13 +81,23 @@ namespace QuantumMechanics
 
         public double DoubleSlitPotential(double x, double y) // Works well!
         {
-            float d = 0.1f;
-            float s = 0.06f;
+            float d = 0.075f;
+            float s = 0.03f;
 
-            if (x > 0.48 && (x < 0.52) && !(y > 0.5 - d - s && (y < 0.5 - d + s)) && !(y > 0.5 + d - s && (y < 0.5 + d + s))) return 100;
+            if (x > 0.48 && (x < 0.52) && !(y > 0.5 - d - s && (y < 0.5 - d + s)) && !(y > 0.5 + d - s && (y < 0.5 + d + s))) return 100000;
             
             
             //if (x > 0.55) return 2 * (x - 0.55);
+            return 0;
+        }
+
+        public double RoundPegPotential(double x, double y)
+        {
+            double radius = 0.05;
+            double dot = (x - 0.5) * (x - 0.5) + (y - 0.5) * (y - 0.5);
+
+
+            if (dot < radius * radius) return 100000;
             return 0;
         }
 
@@ -111,15 +121,15 @@ namespace QuantumMechanics
         {
             timestep = 0.02f;
 
-            simulation = new CustomPotentialBoundedSimulation(1, 128);
+            simulation = new CustomPotentialBoundedSimulation(1, 64);
 
-            simulation.hbar = 0.01;
-            simulation.mass = 0.1;
+            simulation.hbar = 1;
+            simulation.mass = 500;
             simulation.eigenfunctionCount = 512;
 
-            simulation.potential = RadialHarmonicPotential;//(double x, double y) => { return simulation.mass * x; };
+            simulation.potential = DoubleSlitPotential;//(double x, double y) => { return simulation.mass * x; };
             simulation.targetWavefunction = Wavefunction;//(double x, double y) => { x -= 0.8; y -= 0.5; return new System.Numerics.Complex(0.7 * , 0); };
-            simulation.SolveForEigenfunctions(false);
+            simulation.SolveForEigenfunctions(true);
             simulation.CalculateComponents();
         }
 

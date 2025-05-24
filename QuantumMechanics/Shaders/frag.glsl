@@ -9,6 +9,6 @@ void main()
 	float val = (dot(normal, normalize(vec3(1, 1, 0))) + 1) / 2;
 
 
-	vec4 c = vec4(color, 1);
+	vec4 c = vec4(1,1,1, 1);
 	FragColor = val * c + (1-val) * c / 2;
 }

@@ -114,7 +114,8 @@ namespace QuantumMechanics
             file.Close();
 
             // Code copied from ChatGPT 
-            string pythonExe = "C:\\Users\\felix\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe";//@"C:\Users\felix\AppData\Local\Programs\Python\python.exe"; // Adjust accordingly
+            //string pythonExe = "C:\\Users\\felix\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe";
+            string pythonExe = @"C:\Users\felix\AppData\Local\Programs\Python\Python39\python.exe"; // Adjust accordingly
                                                                                                       // Path to the Python script
             string scriptPath = Directory.GetCurrentDirectory() + "\\SolveForEigenfunctions.py";
 
